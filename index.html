@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>K-SAFE: Krakatau Command Center</title>
+    
+    <!-- === PWA REQUIREMENTS === -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3233/3233483.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent-warning: #f59e0b; --accent-danger: #ef4444; --accent-success: #10b981; --border-color: #334155; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; user-select: none; padding-bottom: 2rem; overflow-x: hidden; }
+        .container { width: 100%; max-width: 1000px; margin: 0 auto; padding: 1rem; }
+        header { text-align: center; padding: 1rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        header h1 { color: var(--accent-warning); font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
+        header p { color: var(--text-muted); font-size: 0.85rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .status-badge { display: inline-block; background-color: rgba(245, 158, 11, 0.2); color: var(--accent-warning); padding: 0.3rem 0.8rem; border-radius: 999px; font-weight: bold; font-size: 0.85rem; border: 1px solid var(--accent-warning); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+        .contact-list, .checklist { list-style: none; user-select: text; }
+        .contact-list li { margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .contact-list span { color: var(--text-muted); }
+        .checklist li { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .checklist input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent-warning); cursor: pointer; }
+        .btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 0.85rem; border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease-in-out; text-decoration: none; min-height: 48px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-danger { background-color: var(--accent-danger); color: white; margin-bottom: 0.5rem; }
+        .btn-success { background-color: var(--accent-success); color: white; margin-top: 0.5rem; }
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-outline { background-color: transparent; border: 1px solid var(--text-muted); color: var(--text-main); margin-top: 0.5rem; }
+        .btn-magma { background-color: #8b5cf6; color: white; margin-bottom: 1rem; }
+        .btn-siren { background-color: transparent; color: var(--accent-danger); border: 2px solid var(--accent-danger); margin-bottom: 1rem; }
+        .siren-active { background-color: var(--accent-danger) !important; color: white !important; animation: sirenPulse 0.5s infinite alternate !important; }
+        @keyframes sirenPulse { from { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; } to { background-color: #7f1d1d; box-shadow: 0 0 20px #991b1b; } }
+        #sos-result, #sos-fallback { display: none; background-color: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; user-select: text; }
+        #sos-result p { margin-bottom: 0.5rem; }
+        .text-highlight { color: var(--accent-warning); font-family: monospace; font-size: 1rem;}
+        .desc-text { font-size: 0.85rem; color: var(--text-muted); text-align: justify; margin-bottom: 1rem; }
+        .chart-container { position: relative; height: 200px; width: 100%; margin-top: 1rem; }
+        .chat-container { display: flex; flex-direction: column; flex: 1; min-height: 400px; }
+        .chat-box { flex: 1; overflow-y: auto; background-color: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color); user-select: text; }
+        .chat-msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; word-wrap: break-word; overflow-wrap: break-word; }
+        .chat-msg br { margin-bottom: 5px; }
+        .msg-ai { background-color: #334155; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg-user { background-color: #0284c7; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-error { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid var(--accent-danger); align-self: center; text-align: center; }
+        .chat-input-area { display: flex; gap: 8px; }
+        .chat-input-area input { flex: 1; padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: white; font-size: 1rem; user-select: text; }
+        .chat-input-area input:focus { outline: none; border-color: var(--accent-warning); }
+        .chat-input-area button { width: 80px; }
+        .typing-indicator { display: none; align-self: flex-start; color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding-left: 10px; margin-bottom: 10px; }
+        @media screen and (max-width: 768px) { .grid { grid-template-columns: 1fr; gap: 0; } header h1 { font-size: 1.25rem; } .card { padding: 1rem; margin-bottom: 1rem; } .chat-input-area { padding-bottom: env(safe-area-inset-bottom); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌋 K-SAFE COMMAND CENTER v1.8 (PWA)</h1>
+        <p>Sistem Asisten Darurat & Mitigasi Bencana Anak Krakatau</p>
+    </header>
+
+    <div class="grid">
+        <div class="col-left">
+            <div class="card">
+                <h2>🌋 Profil & Status MAGMA</h2>
+                <p class="desc-text">
+                    <strong>Gunung Anak Krakatau</strong> adalah gunung api aktif yang muncul dari kaldera purba di Selat Sunda pada tahun 1927, pasca letusan dahsyat Krakatau 1883.
+                </p>
+                <div style="margin-bottom: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <p style="font-size: 0.9rem; margin-bottom: 6px;">Status Terkini (Integrasi MAGMA):</p>
+                    <div class="status-badge" style="margin-bottom: 10px;">SIAGA (Level III)</div>
+                </div>
+                <button class="btn btn-magma" onclick="triggerMagmaNotification()">🔔 Tarik Data MAGMA & Tes Notifikasi</button>
+            </div>
+
+            <div class="card">
+                <h2>📈 Grafik Radius Bahaya (KRB)</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Rentang radius aman berdasarkan Kawasan Rawan Bencana.</p>
+                <div class="chart-container"><canvas id="krbChart"></canvas></div>
+            </div>
+
+            <div class="card">
+                <h2>🎒 Persiapan Darurat (Go-Bag)</h2>
+                <button class="btn btn-siren" id="btn-siren" onclick="toggleSiren()">🔊 Tes Sirine Peringatan Dini</button>
+                <ul class="checklist" style="margin-top: 1rem;">
+                    <li><input type="checkbox" id="c1"> <label for="c1">Masker & Kacamata Pelindung</label></li>
+                    <li><input type="checkbox" id="c2"> <label for="c2">Dokumen Penting (Plastik kedap air)</label></li>
+                    <li><input type="checkbox" id="c3"> <label for="c3">Air & Makanan Siap Saji (3 hari)</label></li>
+                    <li><input type="checkbox" id="c4"> <label for="c4">Kotak P3K & Obat Pribadi</label></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-right">
+            <div class="card" style="border-color: var(--accent-danger);">
+                <h2 style="color: var(--accent-danger);">🚨 SOS & Jalur Evakuasi</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Kirim koordinat darurat atau buka rute evakuasi tercepat.</p>
+                <button class="btn btn-danger" id="btn-get-location" onclick="getLocation()">📍 Dapatkan Lokasi GPS & Siapkan SOS</button>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Titik+Kumpul+Evakuasi+Tsunami+Terdekat" class="btn btn-outline" target="_blank" style="margin-bottom: 0.5rem;">🗺️ Cari Rute Evakuasi Tercepat</a>
+                <div id="sos-result">
+                    <p><strong>Status GPS:</strong> <span id="gps-status" style="color:var(--accent-success);">Akurat</span></p>
+                    <p><strong>Latitude:</strong> <span class="text-highlight" id="lat-val">-</span></p>
+                    <p><strong>Longitude:</strong> <span class="text-highlight" id="lng-val">-</span></p>
+                    <a href="#" id="btn-wa-send" class="btn btn-success" target="_blank">💬 Kirim Pesan SOS via WhatsApp</a>
+                </div>
+                <div id="sos-fallback"><p style="font-size: 0.85rem; color: var(--accent-warning); margin-bottom: 10px;">Gagal melacak titik GPS. Pastikan GPS HP menyala atau gunakan rute evakuasi manual di atas.</p></div>
+            </div>
+
+            <div class="card" style="height: 500px;">
+                <h2>🤖 AI Emergency Assistant</h2>
+                <div class="chat-container">
+                    <div class="chat-box" id="chat-box"><div class="chat-msg msg-ai">Halo! Saya Asisten Darurat Mitigasi Anak Krakatau. Ada yang bisa saya bantu?</div></div>
+                    <div class="typing-indicator" id="typing-indicator">AI sedang memproses...</div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Ketik pesan darurat..." onkeypress="handleEnter(event)">
+                        <button class="btn btn-primary" onclick="sendMessage()">Kirim</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === REGISTRASI SERVICE WORKER (Wajib PWA) ===
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker Berhasil Didaftarkan!', reg))
+                .catch(err => console.error('Service Worker Gagal!', err));
+        });
+    }
+
+    (function antiInspect() {
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); } });
+    })();
+
+    const AppState = (function() {
+        // MASUKKAN KEMBALI API KEY ANDA DI SINI
+        let _apiKey = "API_KEY_KAMU_DI_SINI"; 
+        
+        let _modelName = "gemini-3.6-flash"; 
+        let _systemInstruction = "Anda adalah Asisten Darurat Mitigasi Bencana Gunung Anak Krakatau. Tugas Anda memberikan panduan evakuasi dengan tenang, akurat, dan ringkas. Pastikan setiap jawaban diselesaikan hingga tuntas dan kalimat tidak boleh terpotong di tengah jalan.";
+        return { getApiKey: () => _apiKey, getModelName: () => _modelName, getSystemInstruction: () => _systemInstruction };
+    })();
+
+    let chatHistory = []; 
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('krbChart').getContext('2d');
+        new Chart(ctx, { type: 'bar', data: { labels: ['Radius 1 (0-2 KM)', 'Radius 2 (2-5 KM)', 'Aman (>5 KM)'], datasets: [{ data: [100, 70, 20], backgroundColor: ['rgba(239, 68, 68, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(16, 185, 129, 0.8)'], borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false } } } });
+    });
+
+    function triggerMagmaNotification() {
+        if (!("Notification" in window)) { alert("Perangkat atau aplikasi ini tidak mendukung Native Web Notification API."); return; }
+        const showNotification = () => {
+            new Notification("🚨 UPDATE MAGMA INDONESIA", {
+                body: "Gunung Anak Krakatau berstatus SIAGA (Level III). Dilarang mendekat dalam radius 5 KM dari kawah.",
+                icon: "https://cdn-icons-png.flaticon.com/512/3233/3233483.png",
+                vibrate: [200, 100, 200]
+            });
+        };
+        if (Notification.permission === "granted") { showNotification(); } 
+        else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => { if (permission === "granted") showNotification(); });
+        } else { alert("Izin notifikasi telah diblokir. Silakan izinkan melalui pengaturan browser Anda."); }
+    }
+
+    let audioCtx = null, oscillator = null, gainNode = null, sirenInterval = null, isSirenActive = false;
+    function toggleSiren() {
+        const btnSiren = document.getElementById('btn-siren');
+        if (isSirenActive) {
+            clearInterval(sirenInterval); if (oscillator) { oscillator.stop(); oscillator.disconnect(); }
+            if (audioCtx) { audioCtx.close(); }
+            isSirenActive = false; btnSiren.innerText = "🔊 Tes Sirine Peringatan Dini"; btnSiren.classList.remove('siren-active');
+        } else {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext(); oscillator = audioCtx.createOscillator(); gainNode = audioCtx.createGain();
+                oscillator.type = 'square'; oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+                gainNode.gain.value = 0.1; oscillator.start();
+                let highPitch = true;
+                sirenInterval = setInterval(() => { oscillator.frequency.value = highPitch ? 800 : 400; highPitch = !highPitch; }, 600);
+                isSirenActive = true; btnSiren.innerText = "🔕 Matikan Sirine Darurat"; btnSiren.classList.add('siren-active');
+            } catch (e) { alert("Browser Anda tidak mendukung Web Audio API."); }
+        }
+    }
+
+    async function sendMessage() {
+        const inputEl = document.getElementById("chat-input");
+        const message = inputEl.value.trim();
+        if (!message) return;
+        appendMessage(message, "user"); inputEl.value = "";
+        const apiKey = AppState.getApiKey();
+        if (apiKey === "API_KEY_KAMU_DI_SINI" || !apiKey) { appendMessage("Error: API Key belum diatur.", "error"); return; }
+        
+        // Peringatan jika sedang offline (karena AI butuh internet)
+        if (!navigator.onLine) {
+            appendMessage("⚠️ Anda sedang Offline. Fitur AI tidak dapat memproses jawaban tanpa koneksi internet.", "error");
+            return;
+        }
+
+        document.getElementById("typing-indicator").style.display = "block";
+        chatHistory.push({ role: "user", parts: [{ text: message }] });
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${AppState.getModelName()}:generateContent?key=${apiKey}`;
+            const payload = { systemInstruction: { parts: [{ text: AppState.getSystemInstruction() }] }, contents: chatHistory, generationConfig: { temperature: 0.3, maxOutputTokens: 2048 } };
+            const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+            const data = await response.json();
+            document.getElementById("typing-indicator").style.display = "none";
+            if (data.error) { appendMessage(`Error: ${data.error.message}`, "error"); chatHistory.pop(); } 
+            else if (data.candidates && data.candidates.length > 0) {
+                if (data.candidates[0].finishReason === 'SAFETY') { appendMessage("⚠️ Pesan dihentikan oleh sistem keamanan.", "error"); chatHistory.pop(); return; }
+                const aiText = data.candidates[0].content.parts[0].text;
+                appendMessage(aiText, "ai"); chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+            }
+        } catch (error) { document.getElementById("typing-indicator").style.display = "none"; appendMessage("Koneksi terputus.", "error"); chatHistory.pop(); }
+    }
+
+    function appendMessage(text, sender) {
+        const chatBox = document.getElementById("chat-box"); const msgDiv = document.createElement("div"); msgDiv.className = `chat-msg msg-${sender}`;
+        let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        safeText = safeText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+        msgDiv.innerHTML = safeText; chatBox.appendChild(msgDiv); chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleEnter(event) { if (event.key === "Enter" || event.keyCode === 13) { event.preventDefault(); sendMessage(); } }
+
+    function getLocation() {
+        const btnLoc = document.getElementById("btn-get-location"), resultDiv = document.getElementById("sos-result"), fallbackDiv = document.getElementById("sos-fallback");
+        const latVal = document.getElementById("lat-val"), lngVal = document.getElementById("lng-val"), waBtn = document.getElementById("btn-wa-send");
+        resultDiv.style.display = "none"; fallbackDiv.style.display = "none";
+        if (!navigator.geolocation) { alert("Sistem GPS tidak didukung."); fallbackDiv.style.display = "block"; return; }
+        btnLoc.innerText = "⏳ Melacak Sinyal GPS..."; btnLoc.disabled = true; btnLoc.style.opacity = "0.6";
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude, lng = position.coords.longitude;
+                latVal.innerText = lat; lngVal.innerText = lng;
+                const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`🚨 *DARURAT BENCANA KRAKATAU* 🚨\n\nBantuan evakuasi segera! Lokasi GPS:\n\n*Lat:* ${lat}\n*Lng:* ${lng}\n*Maps:*${mapsLink}`)}`;
+                resultDiv.style.display = "block"; btnLoc.innerText = "📍 Update Ulang Koordinat GPS"; btnLoc.disabled = false; btnLoc.style.opacity = "1"; btnLoc.classList.replace("btn-danger", "btn-primary");
+            },
+            (error) => {
+                btnLoc.innerText = "📍 Dapatkan Lokasi GPS & Siapkan SOS"; btnLoc.disabled = false; btnLoc.style.opacity = "1";
+                alert(`Gagal mengunci lokasi (Error: ${error.message})`); fallbackDiv.style.display = "block";
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+    }
+</script>
+</body>
+</html>
