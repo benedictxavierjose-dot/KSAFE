@@ -1,14 +1,14 @@
 {
   "name": "K-SAFE Command Center",
   "short_name": "K-SAFE",
-  "description": "Sistem Asisten Darurat & Mitigasi Bencana",
+  "description": "Sistem Asisten Darurat & Mitigasi Bencana Anak Krakatau",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "./b5916606-c8a8-43df-b693-874e5d164b7e.jpeg",
+      "src": "./icon.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"
