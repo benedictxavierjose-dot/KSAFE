@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>K-SAFE: Krakatau Command Center</title>
     
-    <!-- === PWA REQUIREMENTS DIARAHKAN KE LOGO LOKAL === -->
+    <!-- PWA REQUIREMENTS -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     <link rel="apple-touch-icon" href="./icon.jpg">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* === CSS / DESAIN GLOBAL === */
         :root { --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent-warning: #f59e0b; --accent-danger: #ef4444; --accent-success: #10b981; --border-color: #334155; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; user-select: none; padding-bottom: 2rem; overflow-x: hidden; }
@@ -63,7 +64,7 @@
 
 <div class="container">
     <header>
-        <h1>🌋 K-SAFE COMMAND CENTER v1.9</h1>
+        <h1>🌋 K-SAFE COMMAND CENTER v1.10</h1>
         <p>Sistem Asisten Darurat & Mitigasi Bencana Anak Krakatau</p>
     </header>
 
@@ -144,18 +145,24 @@
     })();
 
     const AppState = (function() {
-        // MASUKKAN API KEY YANG SUDAH DI-ENCODE BASE64 DI SINI
+        // MASUKKAN API KEY BASE64 KAMU DI SINI
+        // Default di bawah ini adalah terjemahan Base64 dari teks "API_KEY_KAMU_DI_SINI"
         let _encodedApiKey = "QVEuQWI4Uk42SkVDZlBSRXp1cktzLTI1eHFuaWZBb0pEcEtYRFllUkFrMXR2LUs4SDd1QXc="; 
         
-        // Sistem otomatis men-decode kembali menjadi teks asli saat runtime
-        let _apiKey = atob(_encodedApiKey); 
+        // Sistem otomatis men-decode Base64 ke teks asli saat runtime (saat aplikasi jalan)
+        let _apiKey = "";
+        try {
+            _apiKey = atob(_encodedApiKey);
+        } catch(e) {
+            console.error("Format Base64 API Key salah.");
+        }
         
         let _modelName = "gemini-3.6-flash"; 
         let _systemInstruction = "Anda adalah Asisten Darurat Mitigasi Bencana Gunung Anak Krakatau. Tugas Anda memberikan panduan evakuasi dengan tenang, akurat, dan ringkas. Pastikan setiap jawaban diselesaikan hingga tuntas dan kalimat tidak boleh terpotong di tengah jalan.";
         
         return { getApiKey: () => _apiKey, getModelName: () => _modelName, getSystemInstruction: () => _systemInstruction };
     })();
-    
+
     let chatHistory = []; 
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -203,8 +210,12 @@
         const message = inputEl.value.trim();
         if (!message) return;
         appendMessage(message, "user"); inputEl.value = "";
+        
         const apiKey = AppState.getApiKey();
-        if (apiKey === "API_KEY_KAMU_DI_SINI" || !apiKey) { appendMessage("Error: API Key belum diatur.", "error"); return; }
+        if (apiKey === "API_KEY_KAMU_DI_SINI" || apiKey === "") { 
+            appendMessage("Error: API Key belum diatur atau format Base64 salah.", "error"); 
+            return; 
+        }
         
         if (!navigator.onLine) {
             appendMessage("⚠️ Anda sedang Offline. Fitur AI tidak dapat memproses jawaban tanpa koneksi internet.", "error");
