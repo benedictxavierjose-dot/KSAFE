@@ -1,15 +1,22 @@
-// Nama cache dinaikkan ke v2 untuk memaksa pembaruan
-const CACHE_NAME = 'ksafe-cache-v2';
+// Nama cache dinaikkan ke v8 untuk memperbarui jalur folder ./img/
+const CACHE_NAME = 'ksafe-cache-v8';
+
+// Daftar file yang wajib disimpan di memori HP untuk mode offline
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
   './icon.jpg',
-  'https://cdn.jsdelivr.net/npm/chart.js'
+  './img/masker.jpg',
+  './img/kacamata.jpg',
+  'https://cdn.jsdelivr.net/npm/chart.js',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
 
+// Install Service Worker dan simpan semua file di atas
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Memaksa service worker baru langsung aktif
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -18,7 +25,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// Proses pembersihan cache/memori aplikasi yang lama
+// Hapus cache versi lama agar tidak menumpuk
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -33,6 +40,7 @@ self.addEventListener('activate', event => {
   );
 });
 
+// Gunakan cache saat offline
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
