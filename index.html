@@ -17,28 +17,169 @@
 
     <style>
         /* === CSS / DESAIN GLOBAL === */
-        :root { --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --accent-warning: #f59e0b; --accent-danger: #ef4444; --accent-success: #10b981; --border-color: #334155; }
+        :root { 
+            --bg-color: #0f172a; 
+            --card-bg: #1e293b; 
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8; 
+            --accent-warning: #f59e0b; 
+            --accent-danger: #ef4444; 
+            --accent-success: #10b981; 
+            --border-color: #334155; 
+        }
+        
+        html { scroll-behavior: smooth; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; user-select: none; padding-bottom: 2rem; overflow-x: hidden; }
-        .container { width: 100%; max-width: 1000px; margin: 0 auto; padding: 1rem; }
-        header { text-align: center; padding: 1rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        
+        /* === 1. SPLASH SCREEN / COVER ANIMASI === */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 99999;
+            transition: opacity 0.7s ease-out, visibility 0.7s ease-out;
+        }
+        #splash-screen.fade-out { opacity: 0; visibility: hidden; }
+        .splash-logo {
+            width: 110px; height: 110px; border-radius: 24px;
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+            margin-bottom: 1.5rem;
+            animation: floatLogo 2s ease-in-out infinite;
+        }
+        @keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .splash-title {
+            font-size: 1.6rem; font-weight: 800; color: var(--text-main);
+            letter-spacing: 2px; text-align: center;
+            animation: slideUp 0.8s ease-out forwards;
+        }
+        .splash-title span { color: var(--accent-warning); display: block; font-size: 2rem; }
+        .splash-sub { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; animation: slideUp 1s ease-out forwards; }
+        .loader-bar {
+            width: 200px; height: 4px; background-color: var(--border-color);
+            border-radius: 4px; margin-top: 2rem; overflow: hidden;
+        }
+        .loader-progress {
+            width: 0%; height: 100%; background-color: var(--accent-warning);
+            animation: loadProgress 2.2s ease-in-out forwards;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes loadProgress { 0% { width: 0%; } 100% { width: 100%; } }
+
+        /* === HEADER & 2. SHORTCUT BAR === */
+        .container { width: 100%; max-width: 1000px; margin: 0 auto; padding: 0 1rem; }
+        header { text-align: center; padding: 1.2rem 0 0.8rem 0; }
         header h1 { color: var(--accent-warning); font-size: 1.4rem; text-transform: uppercase; letter-spacing: 1px; }
         header p { color: var(--text-muted); font-size: 0.85rem; }
-        
+
+        .shortcut-nav {
+            position: sticky; top: 0; z-index: 1000;
+            background-color: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            display: flex; gap: 8px; overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .shortcut-nav::-webkit-scrollbar { display: none; }
+        .shortcut-btn {
+            background-color: var(--card-bg); color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.45rem 0.9rem; border-radius: 999px;
+            font-size: 0.8rem; font-weight: 600; text-decoration: none;
+            white-space: nowrap; transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .shortcut-btn:hover, .shortcut-btn:active {
+            background-color: var(--accent-warning); color: #0f172a; border-color: var(--accent-warning);
+        }
+
+        /* === GRID & CARDS === */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; margin-bottom: 1.5rem; }
+        .card { 
+            background-color: var(--card-bg); border: 1px solid var(--border-color); 
+            border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); 
+            display: flex; flex-direction: column; margin-bottom: 1.5rem; 
+            scroll-margin-top: 65px; 
+        }
         .card h2 { font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
         
+        /* === ACCORDION BUKA-TUTUP INFORMASI K-SAFE === */
+        .info-toggle-btn {
+            width: 100%;
+            background-color: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: var(--accent-warning);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.25s ease;
+        }
+        .info-toggle-btn:hover { background-color: rgba(245, 158, 11, 0.2); }
+        .info-chevron { transition: transform 0.3s ease; font-size: 0.85rem; }
+        .info-chevron.rotated { transform: rotate(180deg); }
+        
+        .info-collapsible {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, margin-top 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+        }
+        .info-collapsible.open {
+            max-height: 500px;
+            margin-top: 1rem;
+            opacity: 1;
+        }
+
         .status-badge { display: inline-block; background-color: rgba(245, 158, 11, 0.2); color: var(--accent-warning); padding: 0.3rem 0.8rem; border-radius: 999px; font-weight: bold; font-size: 0.85rem; border: 1px solid var(--accent-warning); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
         
-        .contact-list, .checklist { list-style: none; user-select: text; }
-        .contact-list li { margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .contact-list span { color: var(--text-muted); }
-        .checklist li { display: flex; align-items: center; gap: 12px; margin-bottom: 0.75rem; font-size: 0.9rem; }
-        .checklist input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent-warning); cursor: pointer; }
+        /* === DETAIL TAS SIAGA & PROGRESS === */
+        .gobag-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.75rem; font-size: 0.82rem;
+        }
+        .gobag-progress-badge {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: var(--accent-success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 2px 10px; border-radius: 999px; font-weight: 700;
+        }
+        .checklist { list-style: none; user-select: text; }
+        .checklist li { 
+            display: flex; align-items: flex-start; gap: 12px; 
+            background-color: rgba(15, 23, 42, 0.5);
+            padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .checklist li.checked-item {
+            border-color: rgba(16, 185, 129, 0.5);
+            background-color: rgba(16, 185, 129, 0.06);
+        }
+        .checklist input[type="checkbox"] { width: 22px; height: 22px; margin-top: 12px; accent-color: var(--accent-warning); cursor: pointer; flex-shrink: 0; }
+        .item-img-box {
+            background-color: rgba(255, 255, 255, 0.08);
+            width: 54px; height: 54px; border-radius: 10px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid var(--border-color); flex-shrink: 0;
+            padding: 4px; overflow: hidden;
+        }
+        .item-img-box img {
+            width: 100%; height: 100%; object-fit: cover; border-radius: 6px;
+        }
+        .item-detail strong { display: block; font-size: 0.92rem; color: var(--text-main); }
+        .item-detail span { display: block; font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; margin-top: 2px; }
         
-        .btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 0.85rem; border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease-in-out; text-decoration: none; min-height: 48px; }
+        /* === BUTTONS === */
+        .btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 0.85rem; border: none; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease-in-out; text-decoration: none; min-height: 48px; gap: 8px; }
         .btn:active { transform: scale(0.98); }
         .btn-danger { background-color: var(--accent-danger); color: white; margin-bottom: 0.5rem; }
         .btn-success { background-color: var(--accent-success); color: white; margin-top: 0.5rem; }
@@ -49,16 +190,57 @@
         .siren-active { background-color: var(--accent-danger) !important; color: white !important; animation: sirenPulse 0.5s infinite alternate !important; }
         @keyframes sirenPulse { from { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; } to { background-color: #7f1d1d; box-shadow: 0 0 20px #991b1b; } }
         
+        /* === KONTAK ZONA HIJAU === */
+        .green-zone-box {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-success);
+            border-radius: 8px; padding: 1rem; margin-top: 1rem;
+        }
+        .green-zone-title { color: var(--accent-success); font-size: 0.9rem; font-weight: bold; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 6px; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 0.5rem; }
+        .btn-call {
+            background-color: rgba(16, 185, 129, 0.2); color: #a7f3d0;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 0.6rem; border-radius: 6px; font-size: 0.8rem;
+            text-decoration: none; text-align: center; font-weight: 600;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn-call:active { background-color: var(--accent-success); color: #0f172a; }
+        .btn-call small { font-size: 0.7rem; opacity: 0.8; font-weight: normal; }
+
         #sos-result, #sos-fallback { display: none; background-color: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem; user-select: text; }
         #sos-result p { margin-bottom: 0.5rem; }
         .text-highlight { color: var(--accent-warning); font-family: monospace; font-size: 1rem;}
-        .desc-text { font-size: 0.85rem; color: var(--text-muted); text-align: justify; margin-bottom: 1rem; }
+        .desc-text { font-size: 0.85rem; color: var(--text-muted); text-align: justify; margin-bottom: 0.8rem; }
         
         /* Map & Chart Containers */
         #map { z-index: 1; border: 1px solid var(--border-color); }
-        .chart-container { position: relative; height: 200px; width: 100%; margin-top: 1rem; }
+        .radius-legend { display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 10px; color: var(--text-muted); }
+        .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+        .chart-container { position: relative; height: 200px; width: 100%; margin-top: 1rem; cursor: pointer; }
+        .chart-hint {
+            background-color: rgba(245, 158, 11, 0.12);
+            border: 1px dashed var(--accent-warning);
+            color: var(--accent-warning);
+            padding: 0.4rem 0.75rem; border-radius: 6px;
+            font-size: 0.78rem; text-align: center; margin-top: 0.5rem;
+        }
         
         /* Chatbot CSS */
+        .chat-header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;
+        }
+        .chat-header-bar h2 { border: none; margin: 0; padding: 0; }
+        .btn-clear-chat {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            padding: 4px 10px; border-radius: 6px;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-clear-chat:hover { background-color: var(--accent-danger); color: white; }
         .chat-container { display: flex; flex-direction: column; flex: 1; min-height: 400px; }
         .chat-box { flex: 1; overflow-y: auto; background-color: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color); user-select: text; }
         .chat-msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 12px; font-size: 0.9rem; word-wrap: break-word; overflow-wrap: break-word; }
@@ -72,66 +254,183 @@
         .chat-input-area button { width: 80px; }
         .typing-indicator { display: none; align-self: flex-start; color: var(--text-muted); font-size: 0.85rem; font-style: italic; padding-left: 10px; margin-bottom: 10px; }
         
-        @media screen and (max-width: 768px) { .grid { grid-template-columns: 1fr; gap: 0; } header h1 { font-size: 1.25rem; } .card { padding: 1rem; margin-bottom: 1rem; } .chat-input-area { padding-bottom: env(safe-area-inset-bottom); } }
+        /* === FOOTER REFERENSI === */
+        footer {
+            margin-top: 2rem; padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center; font-size: 0.8rem; color: var(--text-muted);
+        }
+        .ref-links { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 0.5rem 0; }
+        .ref-links a { color: var(--accent-warning); text-decoration: none; border-bottom: 1px dashed var(--accent-warning); }
+
+        @media screen and (max-width: 768px) { 
+            .grid { grid-template-columns: 1fr; gap: 0; } 
+            header h1 { font-size: 1.25rem; } 
+            .card { padding: 1rem; margin-bottom: 1rem; } 
+            .chat-input-area { padding-bottom: env(safe-area-inset-bottom); } 
+        }
     </style>
 </head>
 <body>
 
+<!-- === 1. COVER DEPAN ANIMASI (SPLASH SCREEN) === -->
+<div id="splash-screen">
+    <img src="./icon.jpg" alt="K-SAFE Logo" class="splash-logo" onerror="this.style.display='none'">
+    <div class="splash-title">
+        WELCOME TO
+        <span>K-SAFE</span>
+    </div>
+    <p class="splash-sub">Krakatau Command Center & Emergency Assistant</p>
+    <div class="loader-bar">
+        <div class="loader-progress"></div>
+    </div>
+</div>
+
 <div class="container">
     <header>
-        <h1>🌋 K-SAFE COMMAND CENTER v1.12</h1>
+        <h1>🌋 K-SAFE COMMAND CENTER</h1>
         <p>Sistem Asisten Darurat & Mitigasi Bencana Anak Krakatau</p>
     </header>
+</div>
 
+<!-- === 2. SHORTCUT NAVIGATION BAR === -->
+<nav class="shortcut-nav">
+    <div class="container" style="display: flex; gap: 8px; overflow-x: auto;">
+        <a href="#sec-info" class="shortcut-btn">ℹ️ Info</a>
+        <a href="#sec-peta" class="shortcut-btn">🗺️ Peta SIG</a>
+        <a href="#sec-grafik" class="shortcut-btn">📈 Grafik KRB</a>
+        <a href="#sec-gobag" class="shortcut-btn">🎒 Tas Siaga</a>
+        <a href="#sec-sos" class="shortcut-btn">🚨 SOS & Kontak</a>
+        <a href="#sec-ai" class="shortcut-btn">🤖 Tanya AI</a>
+    </div>
+</nav>
+
+<div class="container">
     <div class="grid">
-        <!-- KOLOM KIRI (INFORMASI & SIG) -->
+        <!-- KOLOM KIRI -->
         <div class="col-left">
             
-            <div class="card">
-                <h2>ℹ️ Informasi K-SAFE</h2>
-                <p class="desc-text">
-                    <strong>K-SAFE (Krakatau Command Center & Emergency Assistant)</strong> adalah purwarupa sistem informasi mitigasi bencana gunung berapi berbasis <em>Progressive Web App (PWA)</em>. Aplikasi ini dirancang untuk memandu pengguna dengan memberikan panduan evakuasi AI, pemantauan spasial (SIG), dan sistem suar darurat (SOS) secara terpadu dalam satu dasbor.
-                </p>
-            </div>
+            <!-- CARD 1: INFORMASI UMUM BUKA-TUTUP (ACCORDION MAXIMIZE) -->
+            <div class="card" id="sec-info">
+                <button class="info-toggle-btn" id="btn-toggle-info" onclick="toggleInfoPanel()" aria-expanded="false">
+                    <span>ℹ️ Informasi Umum K-SAFE (Ketuk untuk Buka)</span>
+                    <span class="info-chevron" id="info-chevron">▼</span>
+                </button>
+                
+                <div class="info-collapsible" id="info-panel-body">
+                    <p class="desc-text">
+                        <strong>K-SAFE (Krakatau Command Center & Emergency Assistant)</strong> adalah sistem informasi mitigasi bencana gunung berapi berbasis <em>Progressive Web App (PWA)</em> yang dapat diakses secara <em>offline</em> maupun <em>online</em>.
+                    </p>
+                    <p class="desc-text">
+                        Aplikasi ini dirancang untuk membantu masyarakat pesisir Selat Sunda dalam memantau zona Kawasan Rawan Bencana (KRB) melalui peta WebGIS interaktif, menyiapkan logistik darurat (Tas Siaga), mengirim koordinat GPS via WhatsApp, serta berkonsultasi dengan Asisten Darurat AI.
+                    </p>
+                </div>
 
-            <div class="card">
-                <h2>🗺️ Peta Pemantauan (WebGIS)</h2>
-                <p class="desc-text" style="margin-bottom: 10px;">
-                    Lokasi Gunung Anak Krakatau dipantau menggunakan <strong>Sistem Informasi Geografis (SIG) Leaflet.js</strong> dengan citra dasar dari <strong>OpenStreetMap</strong>. Area lingkaran merah menunjukkan radius Kawasan Rawan Bencana (KRB) III sejauh 5 KM.
-                </p>
-                <div id="map" style="height: 250px; border-radius: 8px;"></div>
-                <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                    <p style="font-size: 0.9rem; margin-bottom: 6px;">Status Vulkanik Terkini (MAGMA):</p>
+                <div style="margin-top: 0.9rem; border-top: 1px solid var(--border-color); padding-top: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Status Aktivitas Vulkanik:</span>
                     <div class="status-badge">SIAGA (Level III)</div>
                 </div>
             </div>
 
-            <div class="card">
-                <h2>📈 Grafik Radius Bahaya (KRB)</h2>
-                <p style="font-size: 0.8rem; color: var(--text-muted);">Rentang radius aman berdasarkan Kawasan Rawan Bencana.</p>
+            <!-- CARD 2: PETA LOKASI SIG -->
+            <div class="card" id="sec-peta">
+                <h2>🗺️ Peta Pemantauan (WebGIS)</h2>
+                <p class="desc-text" style="margin-bottom: 10px;">
+                    Dipetakan menggunakan <strong>SIG Leaflet.js</strong> dan citra dasar <strong>OpenStreetMap</strong> pada koordinat kawah <code>-6.1021° LS, 105.4230° BT</code>.
+                </p>
+                
+                <div id="map" style="height: 260px; border-radius: 8px;"></div>
+                
+                <div class="radius-legend">
+                    <span><i class="legend-dot" style="background:#ef4444;"></i>KRB III (2 KM)</span>
+                    <span><i class="legend-dot" style="background:#f59e0b;"></i>KRB II (5 KM)</span>
+                    <span><i class="legend-dot" style="background:#10b981;"></i>Aman (>5 KM)</span>
+                </div>
+            </div>
+
+            <!-- CARD 3: GRAFIK KRB INTERAKTIF -->
+            <div class="card" id="sec-grafik">
+                <h2>📈 Grafik Tingkat Kerawanan (KRB)</h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Perbandingan indeks risiko berdasarkan jarak dari pusat erupsi Gunung Anak Krakatau.</p>
+                <div class="chart-hint">👆 Ketuk salah satu batang grafik di bawah untuk menampilkan animasi radiusnya di peta atas!</div>
                 <div class="chart-container"><canvas id="krbChart"></canvas></div>
             </div>
         </div>
 
-        <!-- KOLOM KANAN (AKSI DARURAT & AI) -->
+        <!-- KOLOM KANAN -->
         <div class="col-right">
             
-            <div class="card">
-                <h2>🎒 Persiapan Darurat (Go-Bag)</h2>
+            <!-- CARD 4: PERSIAPAN & CHECKLIST TAS SIAGA (LOCALSTORAGE) -->
+            <div class="card" id="sec-gobag">
+                <h2>🎒 Panduan & Checklist Tas Siaga</h2>
                 <button class="btn btn-siren" id="btn-siren" onclick="toggleSiren()">🔊 Tes Sirine Peringatan Dini</button>
-                <ul class="checklist" style="margin-top: 1rem;">
-                    <li><input type="checkbox" id="c1"> <label for="c1">Masker & Kacamata Pelindung</label></li>
-                    <li><input type="checkbox" id="c2"> <label for="c2">Dokumen Penting (Plastik kedap air)</label></li>
-                    <li><input type="checkbox" id="c3"> <label for="c3">Air & Makanan Siap Saji (3 hari)</label></li>
-                    <li><input type="checkbox" id="c4"> <label for="c4">Kotak P3K & Obat Pribadi</label></li>
+                
+                <div class="gobag-header">
+                    <span style="color: var(--text-muted);">Tersimpan otomatis di perangkat:</span>
+                    <span class="gobag-progress-badge" id="gobag-progress">0 / 5 Siap</span>
+                </div>
+                
+                <ul class="checklist" id="gobag-list">
+                    <li>
+                        <input type="checkbox" id="c1" class="gobag-check">
+                        <div class="item-img-box">
+                            <img src="./img/masker.jpg" alt="Masker N95" loading="lazy">
+                        </div>
+                        <div class="item-detail">
+                            <strong>Masker Respirator N95 / KN95</strong>
+                            <span>Wajib standar N95 (seperti gambar) untuk menyaring partikel halus abu vulkanik silika. Hindari masker kain biasa.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="c2" class="gobag-check">
+                        <div class="item-img-box">
+                            <img src="./img/kacamata.jpg" alt="Kacamata Goggles" loading="lazy">
+                        </div>
+                        <div class="item-detail">
+                            <strong>Kacamata Pelindung (Safety Goggles)</strong>
+                            <span>Kacamata tertutup rapat (seperti kacamata lab/renang) untuk mencegah iritasi kornea akibat debu vulkanik.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="c3" class="gobag-check">
+                        <div class="item-img-box">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3081/3081840.png" alt="Makanan Kaleng & Air" loading="lazy">
+                        </div>
+                        <div class="item-detail">
+                            <strong>Makanan Kaleng Siap Saji & Air</strong>
+                            <span>Makanan tahan lama (sarden/kornet), biskuit berkalori tinggi, kurma, dan air mineral min. 3 liter/orang.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="c4" class="gobag-check">
+                        <div class="item-img-box">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2966/2966327.png" alt="Kotak P3K" loading="lazy">
+                        </div>
+                        <div class="item-detail">
+                            <strong>Kotak P3K & Obat Pribadi</strong>
+                            <span>Obat tetes mata steril, perban, antiseptik, obat asma/pernapasan, dan obat rutin pribadi.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <input type="checkbox" id="c5" class="gobag-check">
+                        <div class="item-img-box">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2991/2991108.png" alt="Map Dokumen" loading="lazy">
+                        </div>
+                        <div class="item-detail">
+                            <strong>Dokumen Penting & Senter LED</strong>
+                            <span>KTP, KK, dan Ijazah disimpan dalam map plastik kedap air (ziplock), disertai senter dan powerbank penuh.</span>
+                        </div>
+                    </li>
                 </ul>
             </div>
 
-            <div class="card" style="border-color: var(--accent-danger);">
-                <h2 style="color: var(--accent-danger);">🚨 SOS & Jalur Evakuasi</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Kirim koordinat darurat atau buka rute evakuasi tercepat.</p>
+            <!-- CARD 5: SOS & KONTAK ZONA HIJAU -->
+            <div class="card" id="sec-sos" style="border-color: var(--accent-danger);">
+                <h2 style="color: var(--accent-danger);">🚨 SOS & Kontak Darurat Zona Aman</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Kirim koordinat darurat atau buka rute evakuasi tercepat menuju dataran tinggi.</p>
+                
                 <button class="btn btn-danger" id="btn-get-location" onclick="getLocation()">📍 Dapatkan Lokasi GPS & Siapkan SOS</button>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=Titik+Kumpul+Evakuasi+Tsunami+Terdekat" class="btn btn-outline" target="_blank" style="margin-bottom: 0.5rem;">🗺️ Cari Rute Evakuasi Tercepat</a>
+                <a href="https://www.google.com/maps/dir/?api=1&destination=Titik+Kumpul+Evakuasi+Tsunami+Terdekat" class="btn btn-outline" target="_blank">🗺️ Cari Rute Evakuasi Tercepat</a>
                 
                 <div id="sos-result">
                     <p><strong>Status GPS:</strong> <span id="gps-status" style="color:var(--accent-success);">Akurat</span></p>
@@ -139,31 +438,135 @@
                     <p><strong>Longitude:</strong> <span class="text-highlight" id="lng-val">-</span></p>
                     <a href="#" id="btn-wa-send" class="btn btn-success" target="_blank">💬 Kirim Pesan SOS via WhatsApp</a>
                 </div>
-                <div id="sos-fallback"><p style="font-size: 0.85rem; color: var(--accent-warning); margin-bottom: 10px;">Gagal melacak titik GPS. Pastikan GPS HP menyala atau gunakan rute evakuasi manual di atas.</p></div>
+                <div id="sos-fallback"><p style="font-size: 0.85rem; color: var(--accent-warning); margin-bottom: 10px;">Gagal melacak titik GPS otomatis. Pastikan izin lokasi menyala atau gunakan rute evakuasi manual di atas.</p></div>
+
+                <!-- KONTAK DARURAT RADIUS HIJAU -->
+                <div class="green-zone-box">
+                    <div class="green-zone-title">🟢 Kontak Posko & Medis (Zona Aman >5 KM)</div>
+                    <p style="font-size: 0.78rem; color: var(--text-muted);">Ketuk tombol di bawah untuk langsung menelepon layanan darurat terdekat di wilayah Selat Sunda (Banten & Lampung):</p>
+                    <div class="contact-grid">
+                        <a href="tel:110" class="btn-call">
+                            🚓 Polisi Darurat (110)
+                            <small>Polres Cilegon / Lamsel</small>
+                        </a>
+                        <a href="tel:119" class="btn-call">
+                            🚑 Ambulans / PSC (119)
+                            <small>IGD RSUD Terdekat</small>
+                        </a>
+                        <a href="tel:115" class="btn-call">
+                            🛟 Basarnas SAR (115)
+                            <small>Evakuasi Pesisir & Laut</small>
+                        </a>
+                        <a href="tel:0254200113" class="btn-call">
+                            🏛️ BPBD Banten
+                            <small>(0254) 200-113</small>
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <div class="card" style="height: 500px;">
-                <h2>🤖 AI Emergency Assistant</h2>
+            <!-- CARD 6: CHATBOT AI DENGAN LOCAL HISTORY -->
+            <div class="card" id="sec-ai" style="height: 500px;">
+                <div class="chat-header-bar">
+                    <h2>🤖 AI Emergency Assistant</h2>
+                    <button class="btn-clear-chat" onclick="clearChatHistory()" title="Hapus riwayat percakapan">🗑️ Hapus Chat</button>
+                </div>
                 <div class="chat-container">
-                    <div class="chat-box" id="chat-box"><div class="chat-msg msg-ai">Halo! Saya Asisten Darurat Mitigasi Anak Krakatau. Ada yang bisa saya bantu terkait keselamatan?</div></div>
+                    <div class="chat-box" id="chat-box"></div>
                     <div class="typing-indicator" id="typing-indicator">AI sedang memproses...</div>
                     <div class="chat-input-area">
-                        <input type="text" id="chat-input" placeholder="Ketik pesan darurat..." onkeypress="handleEnter(event)">
+                        <input type="text" id="chat-input" placeholder="Ketik pertanyaan darurat..." onkeypress="handleEnter(event)">
                         <button class="btn btn-primary" onclick="sendMessage()">Kirim</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- === FOOTER REFERENSI RESMI === -->
+    <footer>
+        <p><strong>Sumber Data & Referensi Mitigasi Resmi:</strong></p>
+        <div class="ref-links">
+            <a href="https://magma.esdm.go.id/" target="_blank">MAGMA Indonesia (PVMBG - KESDM)</a> •
+            <a href="https://www.bmkg.go.id/" target="_blank">BMKG (Peringatan Dini Tsunami)</a> •
+            <a href="https://bnpb.go.id/" target="_blank">BNPB (Panduan Siaga Bencana)</a>
+        </div>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem;">Dikembangkan untuk Edukasi Mitigasi Bencana Geografi • K-SAFE Command Center</p>
+    </footer>
 </div>
 
 <script>
+    // === 1. LOGIKA SPLASH SCREEN ===
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) splash.classList.add('fade-out');
+        }, 2300);
+    });
+
+    // === 2. LOGIKA BUKA-TUTUP INFORMASI K-SAFE (ACCORDION MAXIMIZE) ===
+    function toggleInfoPanel() {
+        const panel = document.getElementById('info-panel-body');
+        const chevron = document.getElementById('info-chevron');
+        const btn = document.getElementById('btn-toggle-info');
+        const labelSpan = btn.querySelector('span:first-child');
+
+        const isOpen = panel.classList.toggle('open');
+        chevron.classList.toggle('rotated', isOpen);
+        btn.setAttribute('aria-expanded', isOpen);
+        labelSpan.textContent = isOpen 
+            ? 'ℹ️ Informasi Umum K-SAFE (Ketuk untuk Tutup)' 
+            : 'ℹ️ Informasi Umum K-SAFE (Ketuk untuk Buka)';
+    }
+
+    // === 3. LOGIKA LOCALSTORAGE CHECKLIST TAS SIAGA ===
+    const GOBAG_STORAGE_KEY = 'ksafe_gobag_checklist_v1';
+
+    function initGoBagChecklist() {
+        const checkboxes = document.querySelectorAll('.gobag-check');
+        let savedState = {};
+
+        try {
+            const raw = localStorage.getItem(GOBAG_STORAGE_KEY);
+            if (raw) savedState = JSON.parse(raw);
+        } catch (e) {
+            console.warn('LocalStorage tidak tersedia:', e);
+        }
+
+        checkboxes.forEach(cb => {
+            if (savedState[cb.id]) {
+                cb.checked = true;
+                cb.closest('li').classList.add('checked-item');
+            }
+
+            cb.addEventListener('change', () => {
+                savedState[cb.id] = cb.checked;
+                cb.closest('li').classList.toggle('checked-item', cb.checked);
+                try {
+                    localStorage.setItem(GOBAG_STORAGE_KEY, JSON.stringify(savedState));
+                } catch (e) {
+                    console.warn('Gagal menyimpan checklist:', e);
+                }
+                updateGoBagProgress();
+            });
+        });
+
+        updateGoBagProgress();
+    }
+
+    function updateGoBagProgress() {
+        const checkboxes = document.querySelectorAll('.gobag-check');
+        const checkedCount = document.querySelectorAll('.gobag-check:checked').length;
+        const badge = document.getElementById('gobag-progress');
+        if (badge) {
+            badge.textContent = `${checkedCount} / ${checkboxes.length} Siap`;
+        }
+    }
+
     // === REGISTRASI SERVICE WORKER PWA ===
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker Didaftarkan!', reg))
-                .catch(err => console.error('Service Worker Gagal!', err));
+            navigator.serviceWorker.register('sw.js').catch(err => console.error('SW Error:', err));
         });
     }
 
@@ -181,7 +584,7 @@
         
         let _primaryModel = "gemini-3.6-flash"; 
         let _fallbackModel = "gemini-3.5-flash-lite";
-        let _currentModel = _primaryModel; // Default ke model utama
+        let _currentModel = _primaryModel;
         
         let _systemInstruction = "Anda adalah Asisten Darurat Mitigasi Bencana Gunung Anak Krakatau. Tugas Anda memberikan panduan evakuasi dengan tenang, akurat, dan ringkas. Pastikan setiap jawaban diselesaikan hingga tuntas dan kalimat tidak boleh terpotong di tengah jalan.";
         
@@ -193,24 +596,140 @@
         };
     })();
 
+    // === 4. LOGIKA LOCALSTORAGE RIWAYAT CHAT AI ===
+    const CHAT_STORAGE_KEY = 'ksafe_ai_chat_history_v1';
+    const DEFAULT_WELCOME_MSG = "Halo! Saya Asisten Darurat Mitigasi Anak Krakatau. Ada yang bisa saya bantu terkait prosedur keselamatan atau evakuasi?";
     let chatHistory = []; 
 
-    // === INISIALISASI PETA SIG (LEAFLET) & GRAFIK (CHART.JS) ===
-    document.addEventListener("DOMContentLoaded", function() {
-        // Render Peta Leaflet (Anak Krakatau)
-        const map = L.map('map').setView([-6.1021, 105.4230], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 18 }).addTo(map);
-        L.marker([-6.1021, 105.4230]).addTo(map).bindPopup('<b>Gunung Anak Krakatau</b><br>Status: SIAGA (Level III)').openPopup();
-        L.circle([-6.1021, 105.4230], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.2, radius: 5000 }).addTo(map);
+    function initChatHistory() {
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = "";
+        appendMessage(DEFAULT_WELCOME_MSG, "ai");
 
-        // Render Grafik Batang (Chart.js)
+        try {
+            const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    chatHistory = parsed;
+                    chatHistory.forEach(item => {
+                        const sender = item.role === "user" ? "user" : "ai";
+                        const text = item.parts && item.parts[0] ? item.parts[0].text : "";
+                        if (text) appendMessage(text, sender);
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn("Gagal memuat riwayat chat:", e);
+            chatHistory = [];
+        }
+    }
+
+    function saveChatHistory() {
+        try {
+            localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
+        } catch (e) {
+            console.warn("Gagal menyimpan riwayat chat:", e);
+        }
+    }
+
+    function clearChatHistory() {
+        chatHistory = [];
+        try {
+            localStorage.removeItem(CHAT_STORAGE_KEY);
+        } catch (e) {
+            console.warn("Gagal menghapus riwayat chat:", e);
+        }
+        const chatBox = document.getElementById("chat-box");
+        chatBox.innerHTML = "";
+        appendMessage(DEFAULT_WELCOME_MSG, "ai");
+    }
+
+    let mapInstance = null;
+    let activeCircle = null;
+    let activeAnimInterval = null;
+    const krakatauCoords = [-6.1021, 105.4230];
+
+    // === INISIALISASI PETA SIG, GRAFIK, CHECKLIST, & CHAT ===
+    document.addEventListener("DOMContentLoaded", function() {
+        initGoBagChecklist();
+        initChatHistory();
+
+        mapInstance = L.map('map').setView(krakatauCoords, 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { 
+            attribution: '&copy; OpenStreetMap', 
+            maxZoom: 18 
+        }).addTo(mapInstance);
+
+        L.marker(krakatauCoords).addTo(mapInstance)
+            .bindPopup('<b>🌋 Gunung Anak Krakatau</b><br>Status: SIAGA (Level III)')
+            .openPopup();
+
         const ctx = document.getElementById('krbChart').getContext('2d');
-        new Chart(ctx, { 
+        const krbChart = new Chart(ctx, { 
             type: 'bar', 
-            data: { labels: ['Radius 1 (0-2 KM)', 'Radius 2 (2-5 KM)', 'Aman (>5 KM)'], datasets: [{ data: [100, 70, 20], backgroundColor: ['rgba(239, 68, 68, 0.8)', 'rgba(245, 158, 11, 0.8)', 'rgba(16, 185, 129, 0.8)'], borderRadius: 4 }] }, 
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false } } } 
+            data: { 
+                labels: ['KRB III (0-2 KM)', 'KRB II (2-5 KM)', 'Zona Aman (>5 KM)'], 
+                datasets: [{ 
+                    data: [100, 70, 20], 
+                    backgroundColor: ['rgba(239, 68, 68, 0.85)', 'rgba(245, 158, 11, 0.85)', 'rgba(16, 185, 129, 0.85)'], 
+                    borderRadius: 6,
+                    hoverBackgroundColor: ['#ef4444', '#f59e0b', '#10b981']
+                }] 
+            }, 
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } }, 
+                scales: { y: { display: false } },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const clickedIndex = elements[0].index;
+                        triggerRadiusFromChart(clickedIndex);
+                    }
+                }
+            } 
         });
     });
+
+    function triggerRadiusFromChart(index) {
+        document.getElementById('sec-peta').scrollIntoView({ behavior: 'smooth' });
+
+        if (activeAnimInterval) clearInterval(activeAnimInterval);
+        if (activeCircle) mapInstance.removeLayer(activeCircle);
+
+        const zones = [
+            { maxR: 2000, zoom: 12, color: '#ef4444', title: '🔴 KRB III (Radius 2 KM)', desc: 'Zona Bahaya Utama: Rawan lontaran batu pijar & aliran awan panas.' },
+            { maxR: 5000, zoom: 11, color: '#f59e0b', title: '🟠 KRB II (Radius 5 KM)', desc: 'Zona Terlarang PVMBG: Dilarang keras ada aktivitas masyarakat/wisata.' },
+            { maxR: 9000, zoom: 10, color: '#10b981', title: '🟢 Zona Aman (>5 KM)', desc: 'Batas Aman Relatif: Tetap waspada potensi hujan abu & tsunami.' }
+        ];
+
+        const selected = zones[index];
+
+        mapInstance.flyTo(krakatauCoords, selected.zoom, { duration: 1.0 });
+
+        activeCircle = L.circle(krakatauCoords, {
+            color: selected.color,
+            fillColor: selected.color,
+            fillOpacity: 0.25,
+            weight: 2.5,
+            radius: 100
+        }).addTo(mapInstance)
+          .bindPopup(`<b>${selected.title}</b><br><span style="font-size:12px;">${selected.desc}</span>`)
+          .openPopup();
+
+        let currentR = 100;
+        const step = selected.maxR / 25;
+        activeAnimInterval = setInterval(() => {
+            currentR += step;
+            if (currentR >= selected.maxR) {
+                activeCircle.setRadius(selected.maxR);
+                clearInterval(activeAnimInterval);
+            } else {
+                activeCircle.setRadius(currentR);
+            }
+        }, 20);
+    }
 
     // === SIRINE API ===
     let audioCtx = null, oscillator = null, gainNode = null, sirenInterval = null, isSirenActive = false;
@@ -233,7 +752,7 @@
         }
     }
 
-    // === CHATBOT AI DENGAN FITUR FALLBACK OTOMATIS ===
+    // === CHATBOT AI DENGAN FALLBACK & LOCALSTORAGE ===
     async function sendMessage() {
         const inputEl = document.getElementById("chat-input");
         const message = inputEl.value.trim();
@@ -251,6 +770,7 @@
 
         document.getElementById("typing-indicator").style.display = "block";
         chatHistory.push({ role: "user", parts: [{ text: message }] });
+        saveChatHistory();
 
         try {
             let currentModel = AppState.getCurrentModel();
@@ -264,16 +784,11 @@
             let response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
             let data = await response.json();
 
-            // LOGIKA FALLBACK: Jika model utama error (seperti 503 Service Unavailable)
             if (data.error && currentModel === "gemini-3.6-flash") {
-                console.warn(`Model utama gagal (${data.error.message}). Mengalihkan ke model cadangan...`);
-                appendMessage("⚠️ Model utama sedang sibuk. Mengalihkan permintaan ke sistem cadangan...", "error");
-                
+                appendMessage("⚠️ Model utama sibuk. Mengalihkan ke model cadangan...", "error");
                 AppState.switchToFallback();
                 currentModel = AppState.getCurrentModel();
                 url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
-                
-                // Coba panggil ulang menggunakan model cadangan
                 response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
                 data = await response.json();
             }
@@ -283,19 +798,24 @@
             if (data.error) { 
                 appendMessage(`Error: ${data.error.message}`, "error"); 
                 chatHistory.pop(); 
+                saveChatHistory();
             } else if (data.candidates && data.candidates.length > 0) {
                 if (data.candidates[0].finishReason === 'SAFETY') { 
                     appendMessage("⚠️ Pesan dihentikan oleh sistem keamanan.", "error"); 
-                    chatHistory.pop(); return; 
+                    chatHistory.pop(); 
+                    saveChatHistory();
+                    return; 
                 }
                 const aiText = data.candidates[0].content.parts[0].text;
                 appendMessage(aiText, "ai"); 
                 chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                saveChatHistory();
             }
         } catch (error) { 
             document.getElementById("typing-indicator").style.display = "none"; 
             appendMessage("Koneksi terputus.", "error"); 
             chatHistory.pop(); 
+            saveChatHistory();
         }
     }
 
@@ -308,7 +828,7 @@
 
     function handleEnter(event) { if (event.key === "Enter" || event.keyCode === 13) { event.preventDefault(); sendMessage(); } }
 
-    // === MURNI GEOLOCATION API ===
+    // === GEOLOCATION API ===
     function getLocation() {
         const btnLoc = document.getElementById("btn-get-location"), resultDiv = document.getElementById("sos-result"), fallbackDiv = document.getElementById("sos-fallback");
         const latVal = document.getElementById("lat-val"), lngVal = document.getElementById("lng-val"), waBtn = document.getElementById("btn-wa-send");
